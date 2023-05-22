@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import thoud from "thousand_separator_number";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import Sidebar from "@/components/Sidebar";
 import AddButton from "@/components/AddButton";
 import Modal from "@/components/Modal";
 import { Transaction } from "@/functions/Transaction";
+import { Loan } from "@/functions/Loan";
+import MySearch from "@/components/MySearch";
 
 const LoanTxns = () => {
   const [data, setData] = useState(null);
@@ -12,6 +14,8 @@ const LoanTxns = () => {
     action: null,
   });
   const transactions = Transaction("GET", null);
+  const loans = Loan("GET", null);
+  const [search, setSearch] = useState(null);
 
   const metadatas = [
     {
@@ -70,10 +74,17 @@ const LoanTxns = () => {
 
   const handleClickSave = async () => {
     if (parameter.action === "add") {
-      const result = await Transaction("POST", data);
-    } else {
-      const result = await Transaction("PUT", data);
+      const result = await Transaction("POST", {
+        ...data,
+        user: loans?.filter((l) => l.unique === Number(data.unique))[0]?.user,
+      });
     }
+    // else {
+    //   const result = await Transaction("PUT", {
+    //     ...data,
+    //     user: loans?.filter((l) => l.unique === Number(data.unique))[0]?.user,
+    //   });
+    // }
 
     setParameter({
       ...parameter,
@@ -91,6 +102,12 @@ const LoanTxns = () => {
     });
   };
 
+  const handleSearchValue = (event) => {
+    event.preventDefault();
+
+    setSearch(event.target.value);
+  };
+
   return (
     <div className="flex">
       <Sidebar />
@@ -98,7 +115,13 @@ const LoanTxns = () => {
         <h1 className="text-2xl font-semibold text-blue-900 mb-7">
           Зээлийн гүйлгээнүүд
         </h1>
-        <AddButton handleClickAdd={handleClickAdd} />
+        <div className="flex justify-between items-center">
+          <AddButton handleClickAdd={handleClickAdd} />
+          <MySearch
+            value={search}
+            onChange={(event) => handleSearchValue(event)}
+          />
+        </div>
         {parameter.action === "add" || parameter.action == "edit" ? (
           <Modal
             handleClickCancel={handleClickCancel}
@@ -138,25 +161,24 @@ const LoanTxns = () => {
                 </td>
               </tr>
             ) : (
-              transactions?.map((transaction, index) => {
-                // console.log(transaction);
-                return (
-                  <tr key={index} className="h-6 hover:bg-color-500">
-                    {metadatas.map((metadata, index) => {
-                      // console.log(transaction[metadata.field]);
-                      return metadata.field === "txn_amount" ? (
-                        <td
-                          key={index}
-                          className={`border border-1 border-blue-900 ${
-                            metadata.align === "right"
-                              ? "text-right"
-                              : "text-center"
-                          }`}
-                        >
-                          {thoud(transaction[metadata.field])} MNT
-                        </td>
-                      ) : metadata.field === "txn_type" ? (
-                        transaction[metadata.field] === "Approve" ? (
+              transactions
+                ?.filter((el) => {
+                  if (search !== null) {
+                    return Object.values(el)
+                      .join(" ")
+                      .toLowerCase()
+                      .includes(search.toLowerCase());
+                  } else {
+                    return el;
+                  }
+                })
+                .map((transaction, index) => {
+                  // console.log(transaction);
+                  return (
+                    <tr key={index} className="h-6 hover:bg-color-500">
+                      {metadatas.map((metadata, index) => {
+                        // console.log(transaction[metadata.field]);
+                        return metadata.field === "txn_amount" ? (
                           <td
                             key={index}
                             className={`border border-1 border-blue-900 ${
@@ -165,9 +187,57 @@ const LoanTxns = () => {
                                 : "text-center"
                             }`}
                           >
-                            Олголт
+                            {thoud(transaction[metadata.field])} MNT
                           </td>
-                        ) : transaction[metadata.field] === "Stretch" ? (
+                        ) : metadata.field === "txn_type" ? (
+                          transaction[metadata.field] === "Approve" ? (
+                            <td
+                              key={index}
+                              className={`border border-1 border-blue-900 ${
+                                metadata.align === "right"
+                                  ? "text-right"
+                                  : "text-center"
+                              }`}
+                            >
+                              Зээл олголт
+                            </td>
+                          ) : transaction[metadata.field] === "Stretch" ? (
+                            <td
+                              key={index}
+                              className={`border border-1 border-blue-900 ${
+                                metadata.align === "right"
+                                  ? "text-right"
+                                  : "text-center"
+                              }`}
+                            >
+                              Зээл сунгалт
+                            </td>
+                          ) : transaction[metadata.field] === "Pay" ? (
+                            <td
+                              key={index}
+                              className={`border border-1 border-blue-900 ${
+                                metadata.align === "right"
+                                  ? "text-right"
+                                  : "text-center"
+                              }`}
+                            >
+                              Хэсэгчилсэн төлөлт
+                            </td>
+                          ) : transaction[metadata.field] === "Close" ? (
+                            <td
+                              key={index}
+                              className={`border border-1 border-blue-900 ${
+                                metadata.align === "right"
+                                  ? "text-right"
+                                  : "text-center"
+                              }`}
+                            >
+                              Зээл хаалт
+                            </td>
+                          ) : null
+                        ) : metadata.field === "lastname" ||
+                          metadata.field === "firstname" ||
+                          metadata.field === "register" ? (
                           <td
                             key={index}
                             className={`border border-1 border-blue-900 ${
@@ -176,7 +246,11 @@ const LoanTxns = () => {
                                 : "text-center"
                             }`}
                           >
-                            Сунгалт
+                            {
+                              loans?.filter((l) => transaction.loan_id)[0][
+                                metadata.field
+                              ]
+                            }
                           </td>
                         ) : (
                           <td
@@ -187,49 +261,20 @@ const LoanTxns = () => {
                                 : "text-center"
                             }`}
                           >
-                            Төлөлт
+                            {transaction[metadata.field]}
                           </td>
-                        )
-                      ) : metadata.field === "lastname" ||
-                        metadata.field === "firstname" ||
-                        metadata.field === "register" ? (
-                        <td
-                          key={index}
-                          className={`border border-1 border-blue-900 ${
-                            metadata.align === "right"
-                              ? "text-right"
-                              : "text-center"
-                          }`}
-                        >
-                          {
-                            loans?.filter((l) => transaction.loan_id)[0][
-                              metadata.field
-                            ]
-                          }
-                        </td>
-                      ) : (
-                        <td
-                          key={index}
-                          className={`border border-1 border-blue-900 ${
-                            metadata.align === "right"
-                              ? "text-right"
-                              : "text-center"
-                          }`}
-                        >
-                          {transaction[metadata.field]}
-                        </td>
-                      );
-                    })}
-                    <td className="border border-1 border-blue-900">
-                      <HiOutlinePencilAlt
-                        className="m-auto cursor-pointer"
-                        size={20}
-                        // onClick={() => handleClickEdit(transaction)}
-                      />
-                    </td>
-                  </tr>
-                );
-              })
+                        );
+                      })}
+                      <td className="border border-1 border-blue-900">
+                        <HiOutlinePencilAlt
+                          className="m-auto cursor-pointer"
+                          size={20}
+                          // onClick={() => handleClickEdit(transaction)}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })
             )}
           </tbody>
         </table>

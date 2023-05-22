@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import thoud from "thousand_separator_number";
 import { RxCrossCircled } from "react-icons/rx";
 import { TiTick } from "react-icons/ti";
@@ -6,11 +6,13 @@ import { Loan } from "@/functions/Loan";
 import { LoanStatus } from "@/functions/LoanStatus";
 import { Product } from "@/functions/Product";
 import Sidebar from "@/components/Sidebar";
+import MySearch from "@/components/MySearch";
 
 const Loans = () => {
   const loans = Loan("GET", null);
   const products = Product("GET", null);
   const loanStatus = LoanStatus();
+  const [search, setSearch] = useState(null);
 
   const metadatas = [
     {
@@ -121,7 +123,14 @@ const Loans = () => {
     const result = await Loan("PUT", {
       decision,
       loan,
+      prevLoanId: loans?.filter((l) => l.unique === loan.prevUnique)[0]?.id,
     });
+  };
+
+  const handleSearchValue = (event) => {
+    event.preventDefault();
+
+    setSearch(event.target.value);
   };
 
   return (
@@ -129,6 +138,13 @@ const Loans = () => {
       <Sidebar />
       <div className="p-7 flex-1 h-screen">
         <h1 className="text-2xl font-semibold text-blue-900 mb-7">Зээлүүд</h1>
+        <div className="flex justify-between items-center">
+          <div className="my-2">&nbsp;</div>
+          <MySearch
+            value={search}
+            onChange={(event) => handleSearchValue(event)}
+          />
+        </div>
         <table className="text-sm w-full" cellPadding={5} cellSpacing={0}>
           <thead>
             <tr className="text-center font-semibold h-16">
@@ -157,24 +173,94 @@ const Loans = () => {
                 </td>
               </tr>
             ) : (
-              loans?.map((loan, index) => {
-                // console.log(loan);
-                return (
-                  <tr key={index} className="h-6 hover:bg-color-500">
-                    {metadatas.map((metadata, index) => {
-                      // console.log(loan[metadata.field]);
-                      return metadata.field === "polaris_registration" ? (
-                        loan[metadata.field] === undefined ||
-                        loan[metadata.field] === false ? (
+              loans
+                ?.filter((el) => {
+                  if (search !== null) {
+                    return Object.values(el)
+                      .join(" ")
+                      .toLowerCase()
+                      .includes(search.toLowerCase());
+                  } else {
+                    return el;
+                  }
+                })
+                .map((loan, index) => {
+                  // console.log(loan);
+                  return (
+                    <tr key={index} className="h-6 hover:bg-color-500">
+                      {metadatas.map((metadata, index) => {
+                        // console.log(loan[metadata.field]);
+                        return metadata.field === "polaris_registration" ? (
+                          loan[metadata.field] === undefined ||
+                          loan[metadata.field] === false ? (
+                            <td
+                              key={index}
+                              className={`border border-1 border-blue-900 text-red-500 font-semibold ${
+                                metadata.align === "right"
+                                  ? "text-right"
+                                  : "text-center"
+                              }`}
+                            >
+                              Бүртгээгүй
+                            </td>
+                          ) : (
+                            <td
+                              key={index}
+                              className={`border border-1 border-blue-900 ${
+                                metadata.align === "right"
+                                  ? "text-right"
+                                  : "text-center"
+                              }`}
+                            >
+                              Бүртгэсэн
+                            </td>
+                          )
+                        ) : metadata.field === "segment" ? (
                           <td
                             key={index}
-                            className={`border border-1 border-blue-900 text-red-500 font-semibold ${
+                            className={`border border-1 border-blue-900 ${
                               metadata.align === "right"
                                 ? "text-right"
                                 : "text-center"
                             }`}
                           >
-                            Бүртгээгүй
+                            {
+                              products?.filter(
+                                (p) => p.id === loan[metadata.field]
+                              )[0]?.segment
+                            }
+                          </td>
+                        ) : metadata.field === "loan_status" ? (
+                          <td
+                            key={index}
+                            className={`border border-1 border-blue-900 ${
+                              metadata.align === "right"
+                                ? "text-right"
+                                : "text-center"
+                            } text-${
+                              loanStatus?.filter(
+                                (p) => p.id === loan[metadata.field]
+                              )[0]?.color
+                            }-500 font-semibold`}
+                          >
+                            {
+                              loanStatus?.filter(
+                                (p) => p.id === loan[metadata.field]
+                              )[0]?.name
+                            }
+                          </td>
+                        ) : metadata.field === "loan_amount" ||
+                          metadata.field === "user_loan_amount" ||
+                          metadata.field === "user_loan_fee" ? (
+                          <td
+                            key={index}
+                            className={`border border-1 border-blue-900 ${
+                              metadata.align === "right"
+                                ? "text-right"
+                                : "text-center"
+                            }`}
+                          >
+                            {thoud(loan[metadata.field])}₮
                           </td>
                         ) : (
                           <td
@@ -185,101 +271,42 @@ const Loans = () => {
                                 : "text-center"
                             }`}
                           >
-                            Бүртгэсэн
+                            {loan[metadata.field]}
                           </td>
-                        )
-                      ) : metadata.field === "segment" ? (
-                        <td
-                          key={index}
-                          className={`border border-1 border-blue-900 ${
-                            metadata.align === "right"
-                              ? "text-right"
-                              : "text-center"
-                          }`}
-                        >
-                          {
-                            products?.filter(
-                              (p) => p.id === loan[metadata.field]
-                            )[0]?.segment
-                          }
-                        </td>
-                      ) : metadata.field === "loan_status" ? (
-                        <td
-                          key={index}
-                          className={`border border-1 border-blue-900 ${
-                            metadata.align === "right"
-                              ? "text-right"
-                              : "text-center"
-                          } text-${
-                            loanStatus?.filter(
-                              (p) => p.id === loan[metadata.field]
-                            )[0]?.color
-                          }-500 font-semibold`}
-                        >
-                          {
-                            loanStatus?.filter(
-                              (p) => p.id === loan[metadata.field]
-                            )[0]?.name
-                          }
-                        </td>
-                      ) : metadata.field === "loan_amount" ||
-                        metadata.field === "user_loan_amount" ||
-                        metadata.field === "user_loan_fee" ? (
-                        <td
-                          key={index}
-                          className={`border border-1 border-blue-900 ${
-                            metadata.align === "right"
-                              ? "text-right"
-                              : "text-center"
-                          }`}
-                        >
-                          {thoud(loan[metadata.field])}₮
-                        </td>
-                      ) : (
-                        <td
-                          key={index}
-                          className={`border border-1 border-blue-900 ${
-                            metadata.align === "right"
-                              ? "text-right"
-                              : "text-center"
-                          }`}
-                        >
-                          {loan[metadata.field]}
-                        </td>
-                      );
-                    })}
-                    <td className="border border-1 border-blue-900">
-                      {loan.loan_status === "gDhqtQGFYVmv5LR4C5R4" && (
-                        <div className="flex flex-row justify-center">
-                          {loan.prevUnique === undefined ||
-                          loan.prevUnique === null ? (
-                            <TiTick
-                              className="m-auto cursor-pointer text-blue-500"
+                        );
+                      })}
+                      <td className="border border-1 border-blue-900">
+                        {loan.loan_status === "gDhqtQGFYVmv5LR4C5R4" && (
+                          <div className="flex flex-row justify-center">
+                            {loan.prevUnique === undefined ||
+                            loan.prevUnique === null ? (
+                              <TiTick
+                                className="m-auto cursor-pointer text-blue-500"
+                                size={20}
+                                onClick={() =>
+                                  handleLoanDecision("Approve", loan)
+                                }
+                              />
+                            ) : (
+                              <TiTick
+                                className="m-auto cursor-pointer text-blue-500"
+                                size={20}
+                                onClick={() =>
+                                  handleLoanDecision("Stretch", loan)
+                                }
+                              />
+                            )}
+                            <RxCrossCircled
+                              className="m-auto cursor-pointer text-red-500"
                               size={20}
-                              onClick={() =>
-                                handleLoanDecision("Approve", loan)
-                              }
+                              onClick={() => handleLoanDecision("Cancel", loan)}
                             />
-                          ) : (
-                            <TiTick
-                              className="m-auto cursor-pointer text-blue-500"
-                              size={20}
-                              onClick={() =>
-                                handleLoanDecision("Stretch", loan)
-                              }
-                            />
-                          )}
-                          <RxCrossCircled
-                            className="m-auto cursor-pointer text-red-500"
-                            size={20}
-                            onClick={() => handleLoanDecision("Cancel", loan)}
-                          />
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
             )}
           </tbody>
         </table>

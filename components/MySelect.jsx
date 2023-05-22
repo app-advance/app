@@ -68,8 +68,8 @@ const MySelect = ({ id, value, onChange, label, action, name, disabled }) => {
           })
         ) : name === "txn_type" ? (
           <>
-            <option value="Pay">Төлөлт</option>
-            <option value="Close">Хаалт</option>
+            <option value="Pay">Хэсэгчилсэн төлөлт</option>
+            <option value="Close">Зээл хаалт</option>
           </>
         ) : null}
       </select>

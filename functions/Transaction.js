@@ -20,10 +20,11 @@ export const Transaction = (method, datas) => {
 
   if (method === "POST") {
     addDoc(collectionRef, {
-      txn_amount: datas.txn_amount,
+      txn_amount: Number(datas.txn_amount),
       txn_date: currentDate,
       txn_type: datas.txn_type,
-      unique: datas.unique,
+      unique: Number(datas.unique),
+      user: datas.user,
     })
       .then((result) => {
         // console.log("ADD_PRODUCT_RESULT: ", result);

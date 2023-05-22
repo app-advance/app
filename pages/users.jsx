@@ -4,6 +4,7 @@ import Sidebar from "@/components/Sidebar";
 import { User } from "@/functions/User";
 import { Permission } from "@/functions/Permission";
 import { Product } from "@/functions/Product";
+import MySearch from "@/components/MySearch";
 import Modal from "@/components/Modal";
 
 const Users = () => {
@@ -11,6 +12,7 @@ const Users = () => {
   const permissions = Permission();
   const products = Product("GET", null);
   const [data, setData] = useState(null);
+  const [search, setSearch] = useState(null);
   const [parameter, setParameter] = useState({
     action: null,
   });
@@ -59,6 +61,12 @@ const Users = () => {
     });
   };
 
+  const handleSearchValue = (event) => {
+    event.preventDefault();
+
+    setSearch(event.target.value);
+  };
+
   return (
     <div className="flex">
       <Sidebar />
@@ -66,6 +74,13 @@ const Users = () => {
         <h1 className="text-2xl font-semibold text-blue-900 mb-7">
           Харилцагчид
         </h1>
+        <div className="flex justify-between items-center">
+          <div className="my-2">&nbsp;</div>
+          <MySearch
+            value={search}
+            onChange={(event) => handleSearchValue(event)}
+          />
+        </div>
         {parameter.action === "edit" && (
           <Modal
             handleClickCancel={handleClickCancel}
@@ -109,90 +124,101 @@ const Users = () => {
                 </td>
               </tr>
             ) : (
-              users?.map((user, index) => {
-                // console.log(user);
-                return (
-                  <tr
-                    key={index}
-                    className="text-center h-6 hover:bg-color-500"
-                  >
-                    {metadatas.map((metadata, index) => {
-                      // console.log(metadata.field);
-                      return metadata.field === "isAgreement" ? (
-                        user[metadata.field] === false ? (
-                          <td
-                            key={index}
-                            className="border border-1 border-blue-900 text-red-500"
-                          >
-                            Байгуулаагүй
-                          </td>
+              users
+                ?.filter((el) => {
+                  if (search !== null) {
+                    return Object.values(el)
+                      .join(" ")
+                      .toLowerCase()
+                      .includes(search.toLowerCase());
+                  } else {
+                    return el;
+                  }
+                })
+                .map((user, index) => {
+                  // console.log(user);
+                  return (
+                    <tr
+                      key={index}
+                      className="text-center h-6 hover:bg-color-500"
+                    >
+                      {metadatas.map((metadata, index) => {
+                        // console.log(metadata.field);
+                        return metadata.field === "isAgreement" ? (
+                          user[metadata.field] === false ? (
+                            <td
+                              key={index}
+                              className="border border-1 border-blue-900 text-red-500"
+                            >
+                              Байгуулаагүй
+                            </td>
+                          ) : (
+                            <td
+                              key={index}
+                              className="border border-1 border-blue-900 text-green-800"
+                            >
+                              Байгуулсан
+                            </td>
+                          )
+                        ) : metadata.field === "permission" ? (
+                          user[metadata.field] === null ? (
+                            <td
+                              key={index}
+                              className="border border-1 border-blue-900"
+                            >
+                              -
+                            </td>
+                          ) : (
+                            <td
+                              key={index}
+                              className="border border-1 border-blue-900"
+                            >
+                              {
+                                permissions?.filter(
+                                  (p) => p.id === user[metadata.field]
+                                )[0]?.name
+                              }
+                            </td>
+                          )
+                        ) : metadata.field === "segment" ? (
+                          user[metadata.field] === null ? (
+                            <td
+                              key={index}
+                              className="border border-1 border-blue-900"
+                            >
+                              -
+                            </td>
+                          ) : (
+                            <td
+                              key={index}
+                              className="border border-1 border-blue-900"
+                            >
+                              {
+                                products?.filter(
+                                  (p) => p.id === user[metadata.field]
+                                )[0]?.segment
+                              }
+                            </td>
+                          )
                         ) : (
                           <td
                             key={index}
-                            className="border border-1 border-blue-900 text-green-800"
-                          >
-                            Байгуулсан
-                          </td>
-                        )
-                      ) : metadata.field === "permission" ? (
-                        user[metadata.field] === null ? (
-                          <td
-                            key={index}
                             className="border border-1 border-blue-900"
                           >
-                            -
+                            {user[metadata.field]}
                           </td>
-                        ) : (
-                          <td
-                            key={index}
-                            className="border border-1 border-blue-900"
-                          >
-                            {
-                              permissions?.filter(
-                                (p) => p.id === user[metadata.field]
-                              )[0]?.name
-                            }
-                          </td>
-                        )
-                      ) : metadata.field === "segment" ? (
-                        user[metadata.field] === null ? (
-                          <td
-                            key={index}
-                            className="border border-1 border-blue-900"
-                          >
-                            -
-                          </td>
-                        ) : (
-                          <td
-                            key={index}
-                            className="border border-1 border-blue-900"
-                          >
-                            {
-                              products?.filter(
-                                (p) => p.id === user[metadata.field]
-                              )[0]?.segment
-                            }
-                          </td>
-                        )
-                      ) : (
-                        <td
-                          key={index}
-                          className="border border-1 border-blue-900"
-                        >
-                          {user[metadata.field]}
-                        </td>
-                      );
-                    })}
-                    <td className="border border-1 border-blue-900">
-                      <HiOutlinePencilAlt
-                        className="m-auto cursor-pointer"
-                        size={20}
-                        onClick={() => handleClickEdit(user)}
-                      />
-                    </td>
-                  </tr>
-                );
-              })
+                        );
+                      })}
+                      <td className="border border-1 border-blue-900">
+                        <HiOutlinePencilAlt
+                          className="m-auto cursor-pointer"
+                          size={20}
+                          onClick={() => handleClickEdit(user)}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })
             )}
           </tbody>
         </table>

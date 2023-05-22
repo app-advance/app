@@ -3,11 +3,13 @@ import thoud from "thousand_separator_number";
 import { HiOutlinePencilAlt } from "react-icons/hi";
 import Sidebar from "@/components/Sidebar";
 import AddButton from "@/components/AddButton";
+import MySearch from "@/components/MySearch";
 import Modal from "@/components/Modal";
 import { Product } from "@/functions/Product";
 
 const Products = () => {
   const [data, setData] = useState(null);
+  const [search, setSearch] = useState(null);
   const [parameter, setParameter] = useState({
     action: null,
   });
@@ -134,6 +136,12 @@ const Products = () => {
     });
   };
 
+  const handleSearchValue = (event) => {
+    event.preventDefault();
+
+    setSearch(event.target.value);
+  };
+
   return (
     <div className="flex">
       <Sidebar />
@@ -141,7 +149,13 @@ const Products = () => {
         <h1 className="text-2xl font-semibold text-blue-900 mb-7">
           Бүтээгдэхүүнүүд
         </h1>
-        <AddButton handleClickAdd={handleClickAdd} />
+        <div className="flex justify-between items-center">
+          <AddButton handleClickAdd={handleClickAdd} />
+          <MySearch
+            value={search}
+            onChange={(event) => handleSearchValue(event)}
+          />
+        </div>
         {parameter.action === "add" || parameter.action == "edit" ? (
           <Modal
             handleClickCancel={handleClickCancel}
@@ -181,49 +195,60 @@ const Products = () => {
                 </td>
               </tr>
             ) : (
-              products?.map((product, index) => {
-                // console.log(product);
-                return (
-                  <tr key={index} className="h-6 hover:bg-color-500">
-                    {metadatas.map((metadata, index) => {
-                      // console.log(product[metadata.field]);
-                      return metadata.field === "loan_amount" ||
-                        metadata.field === "max_amount" ||
-                        metadata.field === "min_amount" ||
-                        metadata.field === "application_fee" ? (
-                        <td
-                          key={index}
-                          className={`border border-1 border-blue-900 ${
-                            metadata.align === "right"
-                              ? "text-right"
-                              : "text-center"
-                          }`}
-                        >
-                          {thoud(product[metadata.field])}
-                        </td>
-                      ) : (
-                        <td
-                          key={index}
-                          className={`border border-1 border-blue-900 ${
-                            metadata.align === "right"
-                              ? "text-right"
-                              : "text-center"
-                          }`}
-                        >
-                          {product[metadata.field]}
-                        </td>
-                      );
-                    })}
-                    <td className="border border-1 border-blue-900">
-                      <HiOutlinePencilAlt
-                        className="m-auto cursor-pointer"
-                        size={20}
-                        onClick={() => handleClickEdit(product)}
-                      />
-                    </td>
-                  </tr>
-                );
-              })
+              products
+                ?.filter((el) => {
+                  if (search !== null) {
+                    return Object.values(el)
+                      .join(" ")
+                      .toLowerCase()
+                      .includes(search.toLowerCase());
+                  } else {
+                    return el;
+                  }
+                })
+                .map((product, index) => {
+                  // console.log(product);
+                  return (
+                    <tr key={index} className="h-6 hover:bg-color-500">
+                      {metadatas.map((metadata, index) => {
+                        // console.log(product[metadata.field]);
+                        return metadata.field === "loan_amount" ||
+                          metadata.field === "max_amount" ||
+                          metadata.field === "min_amount" ||
+                          metadata.field === "application_fee" ? (
+                          <td
+                            key={index}
+                            className={`border border-1 border-blue-900 ${
+                              metadata.align === "right"
+                                ? "text-right"
+                                : "text-center"
+                            }`}
+                          >
+                            {thoud(product[metadata.field])}
+                          </td>
+                        ) : (
+                          <td
+                            key={index}
+                            className={`border border-1 border-blue-900 ${
+                              metadata.align === "right"
+                                ? "text-right"
+                                : "text-center"
+                            }`}
+                          >
+                            {product[metadata.field]}
+                          </td>
+                        );
+                      })}
+                      <td className="border border-1 border-blue-900">
+                        <HiOutlinePencilAlt
+                          className="m-auto cursor-pointer"
+                          size={20}
+                          onClick={() => handleClickEdit(product)}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })
             )}
           </tbody>
         </table>

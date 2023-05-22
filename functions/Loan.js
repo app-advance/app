@@ -36,6 +36,7 @@ export const Loan = (method, data) => {
   } else if (method === "PUT") {
     const docUpdate = doc(database, "loans", data.loan.id);
     const currentDate = moment().utcOffset("+08:00").format("YYYY-MM-DD HH:MM");
+    const txnDate = moment().utcOffset("+08:00").format("YYYY-MM-DD HH:MM:SS");
     const endDate = moment()
       .utcOffset("+08:00")
       .add(30, "days")
@@ -50,7 +51,7 @@ export const Loan = (method, data) => {
           alert("Зээлийн хүсэлт цуцлагдлаа.");
         })
         .catch((error) => {
-          alert("Зээлийн цуцлахад алдаа гарлаа.");
+          alert("Зээлийн хүсэлт цуцлахад алдаа гарлаа.");
         });
     } else if (data.decision === "Approve") {
       updateDoc(docUpdate, {
@@ -63,8 +64,9 @@ export const Loan = (method, data) => {
           addDoc(collectionRefTxn, {
             txn_type: data.decision,
             txn_amount: Number(data.loan.user_loan_amount),
-            txn_date: currentDate,
-            unique: data.loan.unique,
+            txn_date: txnDate,
+            unique: Number(data.loan.unique),
+            user: data.loan.user,
           })
             .then((result) => {
               alert("Зээл олгогдож, олголтын гүйлгээ бичигдлээ.");
@@ -78,32 +80,50 @@ export const Loan = (method, data) => {
         });
     } else if (data.decision === "Stretch") {
       const docUpdate = doc(database, "loans", data.loan.id);
+      const prevDocUpdate = doc(database, "loans", data.prevLoanId);
       const currentDate = moment()
         .utcOffset("+08:00")
         .format("YYYY-MM-DD HH:MM");
+      const txnDate = moment()
+        .utcOffset("+08:00")
+        .format("YYYY-MM-DD HH:MM:SS");
       const endDate = moment()
         .utcOffset("+08:00")
         .add(30, "days")
         .format("YYYY-MM-DD");
+
+      // Сунгах зээлийн хүсэлтийг Олгогдсон төлөвт шилжүүлэх
       updateDoc(docUpdate, {
         loan_status: "6KkSosdjxnZkBJwYq1fy",
         loan_start_datetime: currentDate,
         loan_end_date: endDate,
       })
         .then((result) => {
+          // Сунгах зээлийн хүсэлтийн Сунгасан гүйлгээг бүртгэх
           addDoc(collectionRefTxn, {
             loan_id: data.loan.id,
             user_id: data.loan.user,
             txn_type: data.decision,
             txn_amount: Number(data.loan.user_loan_amount),
-            txn_date: currentDate,
-            unique: data.loan.unique,
+            txn_date: txnDate,
+            unique: Number(data.loan.unique),
           })
             .then((result) => {
-              alert("Зээлийн хугацаа сунгагдаж, олголтын гүйлгээ бичигдлээ.");
+              // Үндсэн зээлийн төлвийг Сунгасан төлөвт шилжүүлэх
+              updateDoc(prevDocUpdate, {
+                loan_status: "r91BWlhc9ySSpIXhhJGj",
+              })
+                .then((result) => {
+                  alert(
+                    "Зээлийн хугацаа сунгагдаж, олголтын гүйлгээ бичигдлээ."
+                  );
+                })
+                .catch((error) => {
+                  alert("Зээл сунгалтын гүйлгээ бичихэд алдаа гарлаа.");
+                });
             })
             .catch((error) => {
-              alert("Зээл олголтын гүйлгээ бичихэд алдаа гарлаа.");
+              alert("Зээл сунгалтын гүйлгээ бичихэд алдаа гарлаа.");
             });
         })
         .catch((error) => {
