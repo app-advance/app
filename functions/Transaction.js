@@ -16,7 +16,7 @@ export const Transaction = (method, datas) => {
   const collectionRef = collection(database, "loantxns");
   const currentDate = moment()
     .utcOffset("+08:00")
-    .format("YYYY-MM-DD HH:MM:SS");
+    .format("YYYY-MM-DD HH:mm:ss");
 
   if (method === "POST") {
     addDoc(collectionRef, {

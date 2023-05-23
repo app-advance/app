@@ -27,7 +27,7 @@ const Modal = (props) => {
             </h3>
           </div>
           {/* Их бие */}
-          <div class="py-3 px-6 space-y-6">
+          <div className="py-3 px-6 space-y-6">
             {props.metadatas?.map((metadata, index) => {
               // console.log("METADATA: ", metadata.field);
               return metadata.field === "email" ? (

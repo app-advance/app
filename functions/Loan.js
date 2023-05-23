@@ -35,12 +35,18 @@ export const Loan = (method, data) => {
     return loans;
   } else if (method === "PUT") {
     const docUpdate = doc(database, "loans", data.loan.id);
-    const currentDate = moment().utcOffset("+08:00").format("YYYY-MM-DD HH:MM");
-    const txnDate = moment().utcOffset("+08:00").format("YYYY-MM-DD HH:MM:SS");
+    const currentDate = moment()
+      .utcOffset("+08:00")
+      .format("YYYY-MM-DD HH:mm:ss");
+    const txnDate = moment().utcOffset("+08:00").format("YYYY-MM-DD HH:mm:ss");
     const endDate = moment()
       .utcOffset("+08:00")
-      .add(30, "days")
+      .add(29, "days")
       .format("YYYY-MM-DD");
+    // const currentDate = new Date(Date.now());
+    // const toDay = new Date(Date.now());
+    // const endDate = new Date(toDay.setDate(toDay.getDate() + 29));
+    // const txnDate = new Date(Date.now());
 
     if (data.decision === "Cancel") {
       updateDoc(docUpdate, {
@@ -83,13 +89,13 @@ export const Loan = (method, data) => {
       const prevDocUpdate = doc(database, "loans", data.prevLoanId);
       const currentDate = moment()
         .utcOffset("+08:00")
-        .format("YYYY-MM-DD HH:MM");
+        .format("YYYY-MM-DD HH:mm:ss");
       const txnDate = moment()
         .utcOffset("+08:00")
-        .format("YYYY-MM-DD HH:MM:SS");
+        .format("YYYY-MM-DD HH:mm:ss");
       const endDate = moment()
         .utcOffset("+08:00")
-        .add(30, "days")
+        .add(29, "days")
         .format("YYYY-MM-DD");
 
       // Сунгах зээлийн хүсэлтийг Олгогдсон төлөвт шилжүүлэх
@@ -101,8 +107,8 @@ export const Loan = (method, data) => {
         .then((result) => {
           // Сунгах зээлийн хүсэлтийн Сунгасан гүйлгээг бүртгэх
           addDoc(collectionRefTxn, {
-            loan_id: data.loan.id,
-            user_id: data.loan.user,
+            // loan: data.loan.id,
+            user: data.loan.user,
             txn_type: data.decision,
             txn_amount: Number(data.loan.user_loan_amount),
             txn_date: txnDate,
@@ -128,6 +134,20 @@ export const Loan = (method, data) => {
         })
         .catch((error) => {
           alert("Зээлийн хугацаа сунгахад алдаа гарлаа.");
+        });
+    } else if (data.decision === "Close") {
+      const docUpdate = doc(database, "loans", data.loan.id);
+      updateDoc(docUpdate, {
+        loan_status: "hrCkW7hb3o2JI9r5OeYg",
+      })
+        .then((result) => {
+          alert(data.loan.unique + ` дугаартай зээл хаагдлаа.`);
+        })
+        .catch((error) => {
+          alert(
+            data.loan.unique +
+              ` дугаартай зээл хаахад алдаа гарлаа. Хаалтын гүйлгээ хийгдсэн бол гараар зээлийг хаана уу.`
+          );
         });
     }
 

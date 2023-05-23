@@ -7,7 +7,7 @@ import { FiUsers } from "react-icons/fi";
 import { BsWallet2, BsHouse } from "react-icons/bs";
 import { BiPurchaseTag } from "react-icons/bi";
 import { VscSignOut } from "react-icons/vsc";
-import { GrTransaction } from "react-icons/gr";
+import { BsArrowLeftRight } from "react-icons/bs";
 
 const Sidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -95,7 +95,7 @@ const Sidebar = () => {
                 ) : menu.link === "" ? (
                   <BsHouse size={18} className="text-gray-100" />
                 ) : menu.link === "loantxns" ? (
-                  <GrTransaction size={18} className="text-gray-100" />
+                  <BsArrowLeftRight size={18} className="text-gray-100" />
                 ) : null}
                 <span
                   className={`${

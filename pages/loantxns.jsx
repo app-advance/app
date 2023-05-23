@@ -73,11 +73,56 @@ const LoanTxns = () => {
   };
 
   const handleClickSave = async () => {
+    const user = loans?.filter((l) => l.unique === Number(data.unique))[0]
+      ?.user;
+    const user_loan = loans?.filter((l) => l.unique === Number(data.unique))[0];
+
+    let totalPaymentTxns = 0;
+    transactions.forEach((t) => {
+      if (t.txn_type === "Pay" && t.unique === Number(data.unique)) {
+        totalPaymentTxns = totalPaymentTxns + t.txn_amount;
+      }
+    });
+
     if (parameter.action === "add") {
-      const result = await Transaction("POST", {
-        ...data,
-        user: loans?.filter((l) => l.unique === Number(data.unique))[0]?.user,
-      });
+      if (data.txn_type === "Close") {
+        if (
+          user_loan.user_loan_amount ===
+          totalPaymentTxns + Number(data.txn_amount)
+        ) {
+          // Зээлийн хаалтын гүйлгээг бүртгэх
+          await Transaction("POST", {
+            ...data,
+            user: loans?.filter((l) => l.unique === Number(data.unique))[0]
+              ?.user,
+          });
+
+          // Зээлийг хаагдсан төлөвт шилжүүлэх
+          await Loan("PUT", {
+            decision: data.txn_type,
+            loan: user_loan,
+          });
+
+          setParameter({
+            ...parameter,
+            action: null,
+          });
+          setData(null);
+        } else {
+          alert("Хаах гүйлгээний дүн зээлийн үлдэгдэлтэй таарахгүй байна.");
+        }
+      } else if (data.txn_type === "Pay") {
+        const result = await Transaction("POST", {
+          ...data,
+          user: loans?.filter((l) => l.unique === Number(data.unique))[0]?.user,
+        });
+
+        // setParameter({
+        //   ...parameter,
+        //   action: null,
+        // });
+        // setData(null);
+      }
     }
     // else {
     //   const result = await Transaction("PUT", {
@@ -85,12 +130,6 @@ const LoanTxns = () => {
     //     user: loans?.filter((l) => l.unique === Number(data.unique))[0]?.user,
     //   });
     // }
-
-    setParameter({
-      ...parameter,
-      action: null,
-    });
-    setData(null);
   };
 
   const handleChangeValue = (event) => {
