@@ -117,11 +117,11 @@ const LoanTxns = () => {
           user: loans?.filter((l) => l.unique === Number(data.unique))[0]?.user,
         });
 
-        // setParameter({
-        //   ...parameter,
-        //   action: null,
-        // });
-        // setData(null);
+        setParameter({
+          ...parameter,
+          action: null,
+        });
+        setData(null);
       }
     }
     // else {
@@ -213,10 +213,18 @@ const LoanTxns = () => {
                 })
                 .map((transaction, index) => {
                   // console.log(transaction);
+                  let userDateTime;
                   return (
                     <tr key={index} className="h-6 hover:bg-color-500">
                       {metadatas.map((metadata, index) => {
                         // console.log(transaction[metadata.field]);
+
+                        if (metadata.field === "txn_date") {
+                          userDateTime = new Date(
+                            transaction[metadata.field] + 8 * 60 * 60 * 1000
+                          ).toJSON();
+                        }
+
                         return metadata.field === "txn_amount" ? (
                           <td
                             key={index}
@@ -227,6 +235,20 @@ const LoanTxns = () => {
                             }`}
                           >
                             {thoud(transaction[metadata.field])} MNT
+                          </td>
+                        ) : metadata.field === "txn_date" ? (
+                          <td
+                            key={index}
+                            className={`border border-1 border-blue-900 ${
+                              metadata.align === "right"
+                                ? "text-right"
+                                : "text-center"
+                            }`}
+                          >
+                            {userDateTime &&
+                              userDateTime.slice(0, 10) +
+                                " " +
+                                userDateTime.slice(11, 19)}
                           </td>
                         ) : metadata.field === "txn_type" ? (
                           transaction[metadata.field] === "Approve" ? (

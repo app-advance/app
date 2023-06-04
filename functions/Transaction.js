@@ -10,18 +10,15 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { database } from "../firebase";
-import moment from "moment";
 
 export const Transaction = (method, datas) => {
   const collectionRef = collection(database, "loantxns");
-  const currentDate = moment()
-    .utcOffset("+08:00")
-    .format("YYYY-MM-DD HH:mm:ss");
+  const currentDate = new Date(Date.now());
 
   if (method === "POST") {
     addDoc(collectionRef, {
       txn_amount: Number(datas.txn_amount),
-      txn_date: currentDate,
+      txn_date: Date.parse(currentDate),
       txn_type: datas.txn_type,
       unique: Number(datas.unique),
       user: datas.user,

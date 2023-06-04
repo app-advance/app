@@ -186,10 +186,25 @@ const Loans = () => {
                 })
                 .map((loan, index) => {
                   // console.log(loan);
+                  let userDateTime;
                   return (
                     <tr key={index} className="h-6 hover:bg-color-500">
                       {metadatas.map((metadata, index) => {
                         // console.log(loan[metadata.field]);
+                        if (metadata.field === "created_datetime") {
+                          userDateTime = new Date(
+                            loan[metadata.field]?.seconds * 1000 +
+                              8 * 60 * 60 * 1000
+                          ).toJSON();
+                        } else if (
+                          metadata.field === "loan_start_datetime" ||
+                          metadata.field === "loan_end_date"
+                        ) {
+                          userDateTime = new Date(
+                            loan[metadata.field] + 8 * 60 * 60 * 1000
+                          ).toJSON();
+                        }
+
                         return metadata.field === "polaris_registration" ? (
                           loan[metadata.field] === undefined ||
                           loan[metadata.field] === false ? (
@@ -261,6 +276,21 @@ const Loans = () => {
                             }`}
                           >
                             {thoud(loan[metadata.field])}₮
+                          </td>
+                        ) : metadata.field === "created_datetime" ||
+                          metadata.field === "loan_start_datetime" ||
+                          metadata.field === "loan_end_date" ? (
+                          <td
+                            key={index}
+                            className={`border border-1 border-blue-900 ${
+                              metadata.align === "right"
+                                ? "text-right"
+                                : "text-center"
+                            }`}
+                          >
+                            {userDateTime && userDateTime.slice(0, 10)}
+                            <br />
+                            {userDateTime && userDateTime.slice(11, 19)}
                           </td>
                         ) : (
                           <td
