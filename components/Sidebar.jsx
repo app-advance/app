@@ -9,6 +9,8 @@ import { BiPurchaseTag } from "react-icons/bi";
 import { VscSignOut } from "react-icons/vsc";
 import { BsArrowLeftRight } from "react-icons/bs";
 
+const logo = new URL("../images/tomlogo.png", import.meta.url);
+
 const Sidebar = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [menuList, setMenuList] = useState([
@@ -72,11 +74,11 @@ const Sidebar = () => {
             sidebarOpen ? "text-3xl" : "text-xl"
           }`}
         >
-          LOGO
+          <img src={logo} alt="Лого" width={120} />
         </h1>
       </div>
       <div className="flex flex-col justify-between">
-        <ul className="pt-6">
+        <ul className="pt-10">
           {menuList.map((menu, index) => {
             return (
               <li
