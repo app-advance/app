@@ -61,7 +61,10 @@ export const Transaction = (method, datas) => {
   } else if (method === "GET") {
     const [transactions, setTransactions] = useState();
     useEffect(() => {
-      const transactionQuery = query(collectionRef, orderBy("txn_date", "asc"));
+      const transactionQuery = query(
+        collectionRef,
+        orderBy("txn_date", "desc")
+      );
       onSnapshot(transactionQuery, (res) => {
         setTransactions(
           res.docs?.map((data) => {
