@@ -74,7 +74,7 @@ const Sidebar = () => {
             sidebarOpen ? "text-3xl" : "text-xl"
           }`}
         >
-          <img src={logo} alt="Лого" width={120} />
+          <img src={logo} alt="Лого" width={200} />
         </h1>
       </div>
       <div className="flex flex-col justify-between">
